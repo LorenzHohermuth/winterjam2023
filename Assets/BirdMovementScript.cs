@@ -2,21 +2,41 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BirdMovement : MonoBehaviour
+public class BirdMovementScript : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5.0f;
     [SerializeField] private float jumpForce = 5.0f;
     [SerializeField] private float decelerationSpeed = 5.0f;
+    [SerializeField] private float increasedMassFactor = 3.0f;
+    [SerializeField] private float speedChangeThreshold = 2.0f; 
+    [SerializeField] private GameObject MainCamera;
 
     private Rigidbody2D rb;
     private float horizontalMovement = 0f;
+    private float originalMass;
+    private Vector2 previousVelocity;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        originalMass = rb.mass;
     }
 
     void Update()
+    {
+        HandleMovementInput();
+
+        HandleMassInput();
+    }
+
+    void FixedUpdate()
+    {
+        HandleHorizontalMovement();
+
+        TrackSpeedChange();
+    }
+
+    private void HandleMovementInput()
     {
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
         {
@@ -31,7 +51,6 @@ public class BirdMovement : MonoBehaviour
             horizontalMovement = 0;
         }
 
-
         if (Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.RightArrow) ||
             Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D))
         {
@@ -39,7 +58,19 @@ public class BirdMovement : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
+    private void HandleMassInput()
+    {
+        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            rb.mass *= increasedMassFactor;
+        }
+        else if (Input.GetKeyUp(KeyCode.S) || Input.GetKeyUp(KeyCode.DownArrow))
+        {
+            rb.mass = originalMass;
+        }
+    }
+
+    private void HandleHorizontalMovement()
     {
         if (horizontalMovement != 0)
         {
@@ -63,5 +94,23 @@ public class BirdMovement : MonoBehaviour
     {
         rb.velocity = new Vector2(rb.velocity.x, 0);
         rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+    }
+
+    private void TrackSpeedChange()
+    {
+        Vector2 currentVelocity = rb.velocity;
+        float speedDifference = (currentVelocity - previousVelocity).magnitude;
+
+        if (speedDifference >= speedChangeThreshold)
+        {
+            Debug.Log("Significant speed change detected: " + speedDifference);
+            CameraShake script = MainCamera.GetComponent<CameraShake>();
+            if (script != null)
+            {
+                script.sShake(speedDifference/10);
+            }
+        }
+
+        previousVelocity = currentVelocity;
     }
 }

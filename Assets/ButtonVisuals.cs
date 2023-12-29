@@ -14,9 +14,8 @@ public class ButtonVisuals : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     private void Start()
     {
         originalScale = transform.localScale;
-        enlargedScale = originalScale * 1.1f; // Enlarge by 10%
+        enlargedScale = originalScale * 1.1f; 
 
-        // Ensure there's an AudioSource component and assign it
         if (GetComponent<AudioSource>() != null)
         {
             audioSource = GetComponent<AudioSource>();
@@ -52,7 +51,7 @@ public class ButtonVisuals : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     {
         if (audioSource != null && audioSource.isPlaying)
         {
-            audioSource.Stop(); // Stop the audio when the mouse leaves the button
+            audioSource.Stop();
         }
         isHovering = false;
     }
